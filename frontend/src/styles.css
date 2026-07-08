@@ -1,0 +1,319 @@
+:root {
+  color: #e7edf5;
+  background: #0b1220;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.mono {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.hero {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 74% 42%, rgba(63, 167, 160, 0.26), transparent 28rem),
+    linear-gradient(140deg, rgba(11, 18, 32, 0.5), rgba(11, 18, 32, 0.92)),
+    #0b1220;
+}
+
+.globeStage {
+  position: absolute;
+  top: 7vh;
+  right: clamp(1rem, 5vw, 7rem);
+  width: min(48vw, 680px);
+  height: min(48vw, 680px);
+  opacity: 0.98;
+  z-index: 1;
+}
+
+.globeStage canvas {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 0 42px rgba(63, 167, 160, 0.38));
+}
+
+.earthFallback {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(231, 237, 245, 0.36), transparent 0.8rem),
+    radial-gradient(circle at 36% 32%, #3fa7a0 0 7%, transparent 7.2%),
+    radial-gradient(circle at 58% 25%, #3fa7a0 0 11%, transparent 11.2%),
+    radial-gradient(circle at 66% 56%, #3fa7a0 0 15%, transparent 15.2%),
+    radial-gradient(circle at 42% 70%, #3fa7a0 0 12%, transparent 12.2%),
+    linear-gradient(130deg, #123a5c, #081827 60%, #06101c);
+  box-shadow:
+    inset -56px -28px 70px rgba(0, 0, 0, 0.52),
+    inset 22px 18px 38px rgba(231, 237, 245, 0.12),
+    0 0 80px rgba(63, 167, 160, 0.36);
+  overflow: hidden;
+  animation: earthPulse 6s ease-in-out infinite;
+}
+
+.earthTexture {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(92deg, transparent 0 18px, rgba(232, 163, 61, 0.16) 18px 20px),
+    repeating-linear-gradient(0deg, transparent 0 32px, rgba(231, 237, 245, 0.08) 32px 33px);
+  mix-blend-mode: screen;
+  animation: earthDrift 14s linear infinite;
+}
+
+.orbit {
+  position: absolute;
+  inset: -7%;
+  border: 1px solid rgba(232, 163, 61, 0.5);
+  border-radius: 50%;
+  transform: rotateX(64deg) rotateZ(-24deg);
+}
+
+.orbitTwo {
+  inset: 6%;
+  border-color: rgba(63, 167, 160, 0.44);
+  transform: rotateX(72deg) rotateZ(38deg);
+}
+
+.satelliteDot {
+  position: absolute;
+  top: 17%;
+  right: 17%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e8a33d;
+  box-shadow: 0 0 24px #e8a33d;
+  animation: satelliteSweep 5s ease-in-out infinite;
+}
+
+@keyframes earthPulse {
+  0%,
+  100% {
+    transform: scale(0.98);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes earthDrift {
+  from {
+    transform: translateX(-12%);
+  }
+  to {
+    transform: translateX(12%);
+  }
+}
+
+@keyframes satelliteSweep {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-84px, 68px);
+  }
+}
+
+.heroOverlay {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: clamp(6rem, 12vw, 10rem) clamp(1.25rem, 6vw, 6rem);
+  position: relative;
+  z-index: 3;
+  max-width: 58vw;
+}
+
+.launchButton {
+  width: fit-content;
+}
+
+.page {
+  min-height: 100vh;
+  padding: clamp(6rem, 9vw, 8rem) clamp(1rem, 5vw, 4rem) 4rem;
+}
+
+.panel {
+  background: #121b2e;
+  border: 1px solid rgba(140, 160, 184, 0.18);
+  border-radius: 8px;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.22);
+}
+
+.toolGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.uploadZone {
+  min-height: 300px;
+  border: 1px dashed rgba(63, 167, 160, 0.58);
+  border-radius: 8px;
+  background: rgba(18, 27, 46, 0.72);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border-top: 1px solid rgba(140, 160, 184, 0.14);
+  padding-top: 0.75rem;
+  color: #e7edf5;
+}
+
+.imagePanel img,
+.splitImages img {
+  width: 100%;
+  display: block;
+  border-radius: 6px;
+  border: 1px solid rgba(140, 160, 184, 0.18);
+  object-fit: contain;
+  background: #0b1220;
+}
+
+.imagePanel img {
+  max-height: 68vh;
+}
+
+.locatorPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.imageLocator {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+.imageLocator img {
+  max-height: 68vh;
+}
+
+.detectionOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.detectionOverlay text {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.locatorLegend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: #8ca0b8;
+  font-size: 0.875rem;
+}
+
+.locatorLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.buildingSwatch {
+  background: #e8a33d;
+}
+
+.roadSwatch {
+  background: #8ca0b8;
+}
+
+.landSwatch {
+  background: #3fa7a0;
+}
+
+.detectionList {
+  max-height: 360px;
+  overflow: auto;
+  border-top: 1px solid rgba(140, 160, 184, 0.14);
+}
+
+.detectionRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(140, 160, 184, 0.14);
+}
+
+.splitImages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.splitImages .wideImage {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .toolGrid,
+  .splitImages {
+    grid-template-columns: 1fr;
+  }
+
+  .globeStage {
+    top: 8rem;
+    right: -15rem;
+    width: 560px;
+    height: 560px;
+    opacity: 0.42;
+  }
+
+  .heroOverlay {
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding-top: 7rem;
+  }
+
+  .heroOverlay {
+    padding-top: 8rem;
+  }
+}
