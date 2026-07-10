@@ -20,11 +20,15 @@ class Settings(BaseSettings):
     grounding_dino_model_id: str = "IDEA-Research/grounding-dino-tiny"
     sam_model_id: str = "facebook/sam-vit-base"
     model_box_threshold: float = Field(default=0.18, ge=0.01, le=0.99)
-    model_text_threshold: float = Field(default=0.18, ge=0.01, le=0.99)
+    model_text_threshold: float = Field(default=0.2, ge=0.01, le=0.99)
     model_use_tiling: bool = True
-    model_tile_size: int = Field(default=768, ge=256)
-    model_tile_overlap: float = Field(default=0.2, ge=0.0, le=0.6)
+    model_tile_size: int = Field(default=640, ge=256)
+    model_tile_overlap: float = Field(default=0.15, ge=0.0, le=0.6)
+    model_disable_tiling_below_max_side: int = Field(default=1280, ge=256)
+    model_max_analysis_side: int = Field(default=1536, ge=256)
+    sam_max_boxes: int = Field(default=28, ge=1)
     max_upload_mb: int = Field(default=25, ge=1)
+    satellite_fetch_timeout_seconds: float = Field(default=20.0, ge=3.0)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

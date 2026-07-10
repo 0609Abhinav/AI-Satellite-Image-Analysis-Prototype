@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile
 
 from app.core.config import settings
-from app.schemas.analysis import AnalyzeResponse, CompareRequest, CompareResponse, UploadResponse
+from app.schemas.analysis import AnalyzeResponse, CompareRequest, CompareResponse, FetchSatelliteRequest, UploadResponse
 from app.schemas.health import HealthResponse
 from app.services.storage import storage_service
 
@@ -24,6 +24,20 @@ async def health() -> HealthResponse:
 async def upload_image(file: UploadFile) -> UploadResponse:
     """Upload one PNG/JPG/JPEG image and return its local image id and metadata."""
     image = await storage_service.save_upload(file)
+    return UploadResponse(image=image)
+
+
+@router.post("/fetch-satellite", response_model=UploadResponse, tags=["images"])
+async def fetch_satellite_image(payload: FetchSatelliteRequest) -> UploadResponse:
+    """Fetch a clean satellite tile by coordinates and save it as an uploaded image."""
+    image = await storage_service.fetch_satellite_tile(
+        lat=payload.lat,
+        lng=payload.lng,
+        zoom=payload.zoom,
+        size=payload.size,
+        provider=payload.provider,
+        capture_date=payload.capture_date,
+    )
     return UploadResponse(image=image)
 
 

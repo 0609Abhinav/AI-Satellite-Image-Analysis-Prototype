@@ -7,7 +7,19 @@ export type UploadedImage = {
   height: number;
   size_bytes: number;
   url: string;
+  capture_date?: string | null;
+  source_provider?: string | null;
+  source_note?: string | null;
   created_at: string;
+};
+
+export type FetchSatellitePayload = {
+  lat: number;
+  lng: number;
+  zoom: number;
+  size: number;
+  provider?: "esri";
+  capture_date?: string;
 };
 
 export type Detection = {

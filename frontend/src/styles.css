@@ -325,6 +325,10 @@ body {
   color: var(--muted-2);
 }
 
+.darkField .MuiFormHelperText-root {
+  color: rgba(148, 163, 184, 0.78);
+}
+
 .metricChip.MuiChip-root {
   height: 38px;
   padding-inline: 0.25rem;
@@ -840,6 +844,27 @@ body {
   z-index: 1;
 }
 
+.fetchGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.9rem;
+}
+
+.satellitePreview {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.satellitePreview img {
+  width: 100%;
+  max-height: 64vh;
+  object-fit: contain;
+  display: block;
+}
+
 .row {
   display: flex;
   justify-content: space-between;
@@ -861,7 +886,7 @@ body {
 }
 
 .imagePanel img {
-  max-height: 68vh;
+  max-height: none;
 }
 
 .locatorPanel {
@@ -877,7 +902,8 @@ body {
 }
 
 .imageLocator img {
-  max-height: 68vh;
+  height: 100%;
+  max-height: none;
 }
 
 .detectionOverlay {
@@ -959,6 +985,16 @@ body {
   transform: translateX(4px);
   border-color: rgba(45, 212, 191, 0.48);
   background: rgba(30, 64, 75, 0.82);
+}
+
+.uploadRow {
+  cursor: pointer;
+}
+
+.uploadRowActive {
+  border-color: rgba(45, 212, 191, 0.58);
+  background: rgba(15, 118, 110, 0.26);
+  box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.18);
 }
 
 .summaryRow {
@@ -1063,10 +1099,88 @@ body {
   grid-column: 1 / -1;
 }
 
+.swipeCompare {
+  position: relative;
+  min-height: 500px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.swipeImage {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  object-fit: contain;
+  display: block;
+  background: #020617;
+}
+
+.swipeBefore {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  border-right: 2px solid rgba(255, 255, 255, 0.86);
+}
+
+.swipeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-1px);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.52);
+  pointer-events: none;
+}
+
+.swipeHandle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  border: 2px solid rgba(255, 255, 255, 0.86);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
+}
+
+.swipeRange {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+.swipeChip.MuiChip-root {
+  position: absolute;
+  top: 14px;
+  z-index: 2;
+  color: #fff;
+  font-weight: 900;
+}
+
+.swipeChipBefore.MuiChip-root {
+  left: 14px;
+  background: rgba(168, 85, 247, 0.9);
+}
+
+.swipeChipAfter.MuiChip-root {
+  right: 14px;
+  background: rgba(236, 72, 153, 0.9);
+}
+
 @media (max-width: 900px) {
   .toolGrid,
   .toolGridWide,
   .toolGridResults,
+  .fetchGrid,
   .splitImages {
     grid-template-columns: 1fr;
   }

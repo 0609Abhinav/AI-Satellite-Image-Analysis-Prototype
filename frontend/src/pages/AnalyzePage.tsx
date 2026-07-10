@@ -20,6 +20,8 @@ import type { AnalysisResult, Detection, UploadedImage } from "../types/api";
 type AnalyzePageProps = {
   images: UploadedImage[];
   analyses: AnalysisResult[];
+  selectedImageId: string;
+  onSelectImage: (imageId: string) => void;
   onAnalyzed: (analysis: AnalysisResult) => void;
   onNext: () => void;
 };
@@ -27,16 +29,17 @@ type AnalyzePageProps = {
 export function AnalyzePage({
   images,
   analyses,
+  selectedImageId,
+  onSelectImage,
   onAnalyzed,
   onNext,
 }: AnalyzePageProps) {
-  const [imageId, setImageId] = useState(images[0]?.id ?? "");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const selected = images.find((image) => image.id === imageId) ?? images[0];
+  const selected = images.find((image) => image.id === selectedImageId) ?? images[0];
   const analysis = analyses.find((item) => item.image_id === selected?.id);
   const annotated = analysis?.artifacts.find((item) => item.kind === "annotated");
   const displayedImage = annotated?.url ?? selected?.url;
@@ -46,10 +49,14 @@ export function AnalyzePage({
   );
 
   useEffect(() => {
-    if (!imageId && images[0]?.id) {
-      setImageId(images[0].id);
+    if (selectedImageId && images.some((image) => image.id === selectedImageId)) {
+      return;
     }
-  }, [imageId, images]);
+
+    if (images[0]?.id) {
+      onSelectImage(images[0].id);
+    }
+  }, [images, onSelectImage, selectedImageId]);
 
   useEffect(() => {
     if (!busy) {
@@ -135,12 +142,9 @@ export function AnalyzePage({
               <Box
                 className="imageLocator"
                 sx={{
-                  position: "relative",
-                  height: "100%",
-                  minHeight: 520,
-                  borderRadius: "28px",
-                  overflow: "hidden",
-                  background: "#020617",
+                  aspectRatio: `${selected.width} / ${selected.height}`,
+                  width: `min(100%, calc(72vh * ${selected.width / selected.height}))`,
+                  mx: "auto",
                 }}
               >
                 <img
@@ -153,7 +157,6 @@ export function AnalyzePage({
                   style={{
                     width: "100%",
                     height: "100%",
-                    minHeight: 520,
                     objectFit: "contain",
                     display: "block",
                   }}
@@ -200,7 +203,7 @@ export function AnalyzePage({
                 select
                 label="Image"
                 value={selected?.id ?? ""}
-                onChange={(event) => setImageId(event.target.value)}
+                onChange={(event) => onSelectImage(event.target.value)}
                 className="darkField"
               >
                 {images.map((image) => (
@@ -398,7 +401,11 @@ function DetectionOverlay({
       }}
     >
       {detections.slice(0, 60).map((detection, index) => {
-        const [x, y, w, h] = detection.bbox;
+        const [rawX, rawY, rawW, rawH] = detection.bbox;
+        const x = Math.max(0, Math.min(width - 1, rawX));
+        const y = Math.max(0, Math.min(height - 1, rawY));
+        const w = Math.max(1, Math.min(width - x, rawW));
+        const h = Math.max(1, Math.min(height - y, rawH));
         const color = detectionColor(detection.label);
 
         return (

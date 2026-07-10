@@ -12,11 +12,23 @@ class UploadedImage(BaseModel):
     height: int
     size_bytes: int
     url: str
+    capture_date: str | None = None
+    source_provider: str | None = None
+    source_note: str | None = None
     created_at: str
 
 
 class UploadResponse(BaseModel):
     image: UploadedImage
+
+
+class FetchSatelliteRequest(BaseModel):
+    lat: float
+    lng: float
+    zoom: int = 17
+    size: int = 768
+    provider: str = "esri"
+    capture_date: str | None = None
 
 
 class Detection(BaseModel):

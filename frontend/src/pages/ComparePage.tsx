@@ -27,6 +27,7 @@ export function ComparePage({ images, onCompared }: ComparePageProps) {
   const [result, setResult] = useState<CompareResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [swipe, setSwipe] = useState(50);
 
   const before = images.find((image) => image.id === beforeId);
   const after = images.find((image) => image.id === afterId);
@@ -86,55 +87,26 @@ export function ComparePage({ images, onCompared }: ComparePageProps) {
           className="toolGridWide"
         >
           <Box
-            className={`imagePanel splitImages ${busy ? "busyPanel" : ""}`}
+            className={`imagePanel ${busy ? "busyPanel" : ""}`}
             sx={{
-              gridTemplateColumns: overlay ? "1fr" : { xs: "1fr", md: "1fr 1fr" },
               p: 2,
               minHeight: 520,
             }}
           >
-            {!overlay ? (
-              <>
-                <PreviewImage title="Before" image={before} />
-                <PreviewImage title="After" image={after} />
-              </>
-            ) : (
-              <Box
-                sx={{
-                  position: "relative",
-                  overflow: "hidden",
-                  borderRadius: "22px",
-                  bgcolor: "#020617",
-                  border: "1px solid rgba(168,85,247,0.24)",
-                }}
+            <SwipeCompare before={before} after={after} value={swipe} onChange={setSwipe} />
+            {overlay ? (
+              <Button
+                component="a"
+                href={assetUrl(overlay.url)}
+                target="_blank"
+                rel="noreferrer"
+                variant="outlined"
+                className="missionButton missionButtonOutlinePurple"
+                sx={{ mt: 2 }}
               >
-                <Chip
-                  label="Difference Overlay"
-                  sx={{
-                    position: "absolute",
-                    top: 14,
-                    left: 14,
-                    zIndex: 2,
-                    bgcolor: "rgba(168,85,247,0.9)",
-                    color: "#fff",
-                    fontWeight: 900,
-                  }}
-                />
-
-                <img
-                  src={assetUrl(overlay.url)}
-                  alt="Difference overlay"
-                  className="wideImage"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    minHeight: 500,
-                    objectFit: "contain",
-                    display: "block",
-                  }}
-                />
-              </Box>
-            )}
+                Open Difference Overlay
+              </Button>
+            ) : null}
           </Box>
 
           <Box className="controlPanel">
@@ -309,49 +281,43 @@ export function ComparePage({ images, onCompared }: ComparePageProps) {
   );
 }
 
-function PreviewImage({
-  title,
-  image,
+function SwipeCompare({
+  before,
+  after,
+  value,
+  onChange,
 }: {
-  title: string;
-  image?: UploadedImage;
+  before?: UploadedImage;
+  after?: UploadedImage;
+  value: number;
+  onChange: (value: number) => void;
 }) {
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: 500,
-        borderRadius: "22px",
-        overflow: "hidden",
-        bgcolor: "#020617",
-        border: "1px solid rgba(148,163,184,0.16)",
-      }}
-    >
-      <Chip
-        label={title}
-        sx={{
-          position: "absolute",
-          top: 14,
-          left: 14,
-          zIndex: 2,
-          bgcolor: title === "Before" ? "rgba(168,85,247,0.9)" : "rgba(236,72,153,0.9)",
-          color: "#fff",
-          fontWeight: 900,
-        }}
-      />
-
-      {image ? (
-        <img
-          src={assetUrl(image.url)}
-          alt={title}
-          style={{
-            width: "100%",
-            height: "100%",
-            minHeight: 500,
-            objectFit: "contain",
-            display: "block",
-          }}
-        />
+    <Box className="swipeCompare">
+      {before && after ? (
+        <>
+          <img src={assetUrl(after.url)} alt="After capture" className="swipeImage" />
+          <Box className="swipeBefore" sx={{ width: `${value}%` }}>
+            <img
+              src={assetUrl(before.url)}
+              alt="Before capture"
+              className="swipeImage"
+              style={{ width: `${10000 / value}%`, maxWidth: "none" }}
+            />
+          </Box>
+          <Chip label="Before" className="swipeChip swipeChipBefore" />
+          <Chip label="After" className="swipeChip swipeChipAfter" />
+          <Box className="swipeHandle" sx={{ left: `${value}%` }} />
+          <input
+            className="swipeRange"
+            type="range"
+            min={5}
+            max={95}
+            value={value}
+            onChange={(event) => onChange(Number(event.target.value))}
+            aria-label="Before after comparison slider"
+          />
+        </>
       ) : (
         <Stack
           alignItems="center"

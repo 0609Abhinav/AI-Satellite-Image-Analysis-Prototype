@@ -54,34 +54,42 @@ class GroundedSamPipeline:
         bundle = self._load_model_bundle()
         image = Image.open(image_path).convert("RGB")
         width, height = image.size
+        analysis_image, scale_x, scale_y = self._analysis_image(image)
+        analysis_width, analysis_height = analysis_image.size
         prompt_labels = ["building", "road", "parking lot", "vegetation", "water", "open land"]
         prompt_terms = [
-            "building",
-            "house",
-            "roof",
-            "road",
-            "street",
-            "highway",
+            "flat rooftop building",
+            "residential rooftop",
+            "commercial building roof",
+            "paved road",
+            "asphalt street",
+            "highway road",
             "parking lot",
-            "pavement",
-            "vehicle lot",
-            "vegetation",
-            "tree",
-            "grass",
-            "forest",
-            "water",
-            "river",
-            "lake",
-            "pond",
+            "paved parking area",
+            "parked car lot",
+            "vegetation area",
+            "tree canopy",
+            "grass field",
+            "water body",
+            "river water",
+            "lake water",
             "open land",
-            "field",
             "bare ground",
+            "undeveloped field",
         ]
         text_prompt = ". ".join(prompt_terms) + "."
 
-        detections = self._detect_with_grounding(bundle, image, text_prompt, prompt_labels)
+        enable_tiling = settings.model_use_tiling and max(analysis_width, analysis_height) > settings.model_disable_tiling_below_max_side
+        detections = self._detect_with_grounding(bundle, analysis_image, text_prompt, prompt_labels, enable_tiling=enable_tiling)
         detections = self._nms_detections(detections, iou_threshold=0.55)
-        logger.info("Grounding DINO inference finished: boxes=%s elapsed=%.1fs", len(detections), time.perf_counter() - started)
+        logger.info(
+            "Grounding DINO inference finished: boxes=%s tiling=%s analysis_size=%sx%s elapsed=%.1fs",
+            len(detections),
+            enable_tiling,
+            analysis_width,
+            analysis_height,
+            time.perf_counter() - started,
+        )
         if not detections:
             empty_masks = {label: np.zeros((height, width), dtype=np.uint8) for label in prompt_labels}
             return VisionResult(
@@ -91,21 +99,43 @@ class GroundedSamPipeline:
                 masks=empty_masks,
             )
 
+        detections.sort(key=lambda item: item.get("confidence", 0.0), reverse=True)
+        detections = detections[: min(settings.sam_max_boxes, len(detections))]
         logger.info("SAM segmentation started: boxes=%s", len(detections))
-        masks = self._segment_boxes_with_sam(bundle, image, detections, width, height)
+        masks = self._segment_boxes_with_sam(bundle, analysis_image, detections, analysis_width, analysis_height)
+        if scale_x != 1.0 or scale_y != 1.0:
+            detections = self._scale_detections(detections, scale_x, scale_y, width, height)
+            masks = self._scale_masks(masks, width, height)
         logger.info("SAM segmentation finished: elapsed=%.1fs", time.perf_counter() - started)
         class_stats = self._stats_from_masks(masks, detections, width * height)
         return VisionResult(
-            mode=f"grounding-dino:{settings.grounding_dino_model_id}+sam:{settings.sam_model_id}+tiling:{settings.model_use_tiling}",
+            mode=f"grounding-dino:{settings.grounding_dino_model_id}+sam:{settings.sam_model_id}+tiling:{enable_tiling}+max-side:{settings.model_max_analysis_side}",
             detections=detections,
             class_stats=class_stats,
             masks=masks,
         )
 
-    def _detect_with_grounding(self, bundle: dict, image: Image.Image, text_prompt: str, prompt_labels: list[str]) -> list[dict]:
+    def _analysis_image(self, image: Image.Image) -> tuple[Image.Image, float, float]:
+        width, height = image.size
+        max_side = max(width, height)
+        if max_side <= settings.model_max_analysis_side:
+            return image, 1.0, 1.0
+        ratio = settings.model_max_analysis_side / max_side
+        new_size = (max(1, int(width * ratio)), max(1, int(height * ratio)))
+        resized = image.resize(new_size, Image.Resampling.LANCZOS)
+        return resized, width / new_size[0], height / new_size[1]
+
+    def _detect_with_grounding(
+        self,
+        bundle: dict,
+        image: Image.Image,
+        text_prompt: str,
+        prompt_labels: list[str],
+        enable_tiling: bool,
+    ) -> list[dict]:
         width, height = image.size
         detections = self._detect_tile(bundle, image, text_prompt, prompt_labels, 0, 0)
-        if not settings.model_use_tiling or max(width, height) <= settings.model_tile_size:
+        if not enable_tiling or max(width, height) <= settings.model_tile_size:
             return detections
 
         tile_size = min(settings.model_tile_size, width, height)
@@ -161,7 +191,12 @@ class GroundedSamPipeline:
         import torch
         from transformers import AutoProcessor, GroundingDinoForObjectDetection, SamModel, SamProcessor
 
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
         logger.info(
             "Loading local model bundle: grounding=%s sam=%s device=%s cache=%s",
             settings.grounding_dino_model_id,
@@ -267,6 +302,8 @@ class GroundedSamPipeline:
 
         labels = ["building", "road", "parking lot", "vegetation", "water", "open land"]
         masks = {label: np.zeros((height, width), dtype=np.uint8) for label in labels}
+        detections.sort(key=lambda item: item.get("confidence", 0.0), reverse=True)
+        detections = detections[: min(settings.sam_max_boxes, len(detections))]
         boxes_xyxy = []
         for detection in detections:
             x, y, w, h = detection["bbox"]
@@ -289,6 +326,23 @@ class GroundedSamPipeline:
             detection["area_px"] = int(np.count_nonzero(binary))
             masks[detection["label"]] = cv2.bitwise_or(masks[detection["label"]], binary)
         return masks
+
+    def _scale_detections(self, detections: list[dict], scale_x: float, scale_y: float, width: int, height: int) -> list[dict]:
+        scaled: list[dict] = []
+        for detection in detections:
+            x, y, w, h = detection["bbox"]
+            sx = max(0, min(width - 1, int(round(x * scale_x))))
+            sy = max(0, min(height - 1, int(round(y * scale_y))))
+            sw = max(1, min(width - sx, int(round(w * scale_x))))
+            sh = max(1, min(height - sy, int(round(h * scale_y))))
+            scaled.append({**detection, "bbox": [sx, sy, sw, sh], "area_px": sw * sh})
+        return scaled
+
+    def _scale_masks(self, masks: dict[str, np.ndarray], width: int, height: int) -> dict[str, np.ndarray]:
+        return {
+            label: cv2.resize(mask, (width, height), interpolation=cv2.INTER_NEAREST)
+            for label, mask in masks.items()
+        }
 
     def _stats_from_masks(self, masks: dict[str, np.ndarray], detections: list[dict], image_area: int) -> list[dict]:
         stats: list[dict] = []

@@ -15,9 +15,11 @@ export default function App() {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([]);
   const [comparison, setComparison] = useState<CompareResult | null>(null);
+  const [selectedImageId, setSelectedImageId] = useState<string>("");
 
   const addImage = (image: UploadedImage) => {
     setImages((current) => [image, ...current]);
+    setSelectedImageId(image.id);
   };
 
   const addAnalysis = (analysis: AnalysisResult) => {
@@ -26,8 +28,25 @@ export default function App() {
 
   const content = {
     landing: <LandingPage onLaunch={() => setPage("upload")} />,
-    upload: <UploadPage images={images} onUploaded={addImage} onNext={() => setPage("analyze")} />,
-    analyze: <AnalyzePage images={images} analyses={analyses} onAnalyzed={addAnalysis} onNext={() => setPage("results")} />,
+    upload: (
+      <UploadPage
+        images={images}
+        selectedImageId={selectedImageId}
+        onSelectImage={setSelectedImageId}
+        onUploaded={addImage}
+        onNext={() => setPage("analyze")}
+      />
+    ),
+    analyze: (
+      <AnalyzePage
+        images={images}
+        analyses={analyses}
+        selectedImageId={selectedImageId}
+        onSelectImage={setSelectedImageId}
+        onAnalyzed={addAnalysis}
+        onNext={() => setPage("results")}
+      />
+    ),
     compare: <ComparePage images={images} onCompared={setComparison} />,
     results: <ResultsPage analyses={analyses} comparison={comparison} />
   }[page];

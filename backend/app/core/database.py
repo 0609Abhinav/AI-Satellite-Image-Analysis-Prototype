@@ -29,10 +29,16 @@ class Database:
                     width INTEGER NOT NULL,
                     height INTEGER NOT NULL,
                     size_bytes INTEGER NOT NULL,
+                    capture_date TEXT,
+                    source_provider TEXT,
+                    source_note TEXT,
                     created_at TEXT NOT NULL
                 )
                 """
             )
+            self._ensure_column(conn, "images", "capture_date", "TEXT")
+            self._ensure_column(conn, "images", "source_provider", "TEXT")
+            self._ensure_column(conn, "images", "source_note", "TEXT")
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS analyses (
@@ -60,6 +66,11 @@ class Database:
                 )
                 """
             )
+
+    def _ensure_column(self, conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+        columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+        if column not in columns:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     def execute(self, query: str, params: tuple[Any, ...] = ()) -> None:
         with self.connect() as conn:
