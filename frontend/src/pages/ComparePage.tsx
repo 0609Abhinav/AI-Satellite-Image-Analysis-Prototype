@@ -1,6 +1,17 @@
 import { useState } from "react";
-import { Alert, Box, Button, LinearProgress, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  LinearProgress,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import CompareIcon from "@mui/icons-material/Compare";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 
 import { assetUrl, compareImages } from "../api/client";
 import type { CompareResult, UploadedImage } from "../types/api";
@@ -16,15 +27,20 @@ export function ComparePage({ images, onCompared }: ComparePageProps) {
   const [result, setResult] = useState<CompareResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const before = images.find((image) => image.id === beforeId);
   const after = images.find((image) => image.id === afterId);
-  const overlay = result?.artifacts.find((item) => item.kind === "difference_overlay");
+  const overlay = result?.artifacts.find(
+    (item) => item.kind === "difference_overlay"
+  );
   const groupedChanges = result ? groupChanges(result.changes) : [];
 
   const run = async () => {
     if (!before || !after || before.id === after.id) return;
+
     setBusy(true);
     setError(null);
+
     try {
       const comparison = await compareImages(before.id, after.id);
       setResult(comparison);
@@ -36,39 +52,255 @@ export function ComparePage({ images, onCompared }: ComparePageProps) {
     }
   };
 
+  const swapImages = () => {
+    setBeforeId(afterId);
+    setAfterId(beforeId);
+    setResult(null);
+  };
+
   return (
     <main className="page">
-      <Stack spacing={3}>
-        <Typography variant="overline" color="secondary.main" fontFamily="IBM Plex Mono">CHANGE DETECTION</Typography>
-        <Typography variant="h2">Compare two captures of the same area</Typography>
-        <Box className="toolGrid">
-          <Box className="panel splitImages">
-            {before ? <img src={assetUrl(before.url)} alt="Before" /> : null}
-            {after ? <img src={assetUrl(after.url)} alt="After" /> : null}
-            {overlay ? <img src={assetUrl(overlay.url)} alt="Difference overlay" className="wideImage" /> : null}
+      <Stack spacing={3} className="fadeUp">
+        <Box>
+          <Typography
+            variant="overline"
+            className="eyebrow eyebrowPurple"
+          >
+            CHANGE DETECTION
+          </Typography>
+
+          <Typography
+            variant="h2"
+            className="pageTitle pageTitlePurple"
+          >
+            Compare two captures of the same area
+          </Typography>
+
+          <Typography className="pageSubtitle">
+            Select a before and after capture to detect visual changes,
+            difference regions, and changed surface coverage.
+          </Typography>
+        </Box>
+
+        <Box
+          className="toolGridWide"
+        >
+          <Box
+            className={`imagePanel splitImages ${busy ? "busyPanel" : ""}`}
+            sx={{
+              gridTemplateColumns: overlay ? "1fr" : { xs: "1fr", md: "1fr 1fr" },
+              p: 2,
+              minHeight: 520,
+            }}
+          >
+            {!overlay ? (
+              <>
+                <PreviewImage title="Before" image={before} />
+                <PreviewImage title="After" image={after} />
+              </>
+            ) : (
+              <Box
+                sx={{
+                  position: "relative",
+                  overflow: "hidden",
+                  borderRadius: "22px",
+                  bgcolor: "#020617",
+                  border: "1px solid rgba(168,85,247,0.24)",
+                }}
+              >
+                <Chip
+                  label="Difference Overlay"
+                  sx={{
+                    position: "absolute",
+                    top: 14,
+                    left: 14,
+                    zIndex: 2,
+                    bgcolor: "rgba(168,85,247,0.9)",
+                    color: "#fff",
+                    fontWeight: 900,
+                  }}
+                />
+
+                <img
+                  src={assetUrl(overlay.url)}
+                  alt="Difference overlay"
+                  className="wideImage"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 500,
+                    objectFit: "contain",
+                    display: "block",
+                  }}
+                />
+              </Box>
+            )}
           </Box>
-          <Box className="panel">
-            <Stack spacing={2}>
-              <TextField select label="Before" value={before?.id ?? ""} onChange={(event) => setBeforeId(event.target.value)}>
-                {images.map((image) => <MenuItem key={image.id} value={image.id}>{image.original_name}</MenuItem>)}
+
+          <Box className="controlPanel">
+            <Stack spacing={2.2}>
+              <TextField
+                select
+                label="Before"
+                value={before?.id ?? ""}
+                onChange={(event) => {
+                  setBeforeId(event.target.value);
+                  setResult(null);
+                }}
+                className="darkField darkFieldPurple"
+              >
+                {images.map((image) => (
+                  <MenuItem key={image.id} value={image.id}>
+                    {image.original_name}
+                  </MenuItem>
+                ))}
               </TextField>
-              <TextField select label="After" value={after?.id ?? ""} onChange={(event) => setAfterId(event.target.value)}>
-                {images.map((image) => <MenuItem key={image.id} value={image.id}>{image.original_name}</MenuItem>)}
+
+              <Button
+                variant="outlined"
+                startIcon={<SwapHorizIcon />}
+                onClick={swapImages}
+                disabled={!before || !after || busy}
+                className="missionButton missionButtonOutlinePurple"
+              >
+                Swap Before / After
+              </Button>
+
+              <TextField
+                select
+                label="After"
+                value={after?.id ?? ""}
+                onChange={(event) => {
+                  setAfterId(event.target.value);
+                  setResult(null);
+                }}
+                className="darkField darkFieldPurple"
+              >
+                {images.map((image) => (
+                  <MenuItem key={image.id} value={image.id}>
+                    {image.original_name}
+                  </MenuItem>
+                ))}
               </TextField>
-              <Button variant="contained" color="secondary" startIcon={<CompareIcon />} onClick={run} disabled={!before || !after || before.id === after.id || busy}>Run Compare</Button>
-              {busy ? <LinearProgress color="secondary" /> : null}
-              {error ? <Alert severity="error">{error}</Alert> : null}
+
+              <Button
+                variant="contained"
+                startIcon={<CompareIcon />}
+                onClick={run}
+                disabled={!before || !after || before.id === after.id || busy}
+                className="missionButton missionButtonPurple"
+              >
+                {busy ? "Comparing..." : "Run Compare"}
+              </Button>
+
+              {before?.id === after?.id ? (
+                <Alert severity="warning" sx={{ borderRadius: 3 }}>
+                  Select two different images for comparison.
+                </Alert>
+              ) : null}
+
+              {busy ? (
+                <Box className="progressBox progressBoxPurple">
+                  <LinearProgress
+                    className="missionProgress missionProgressPurple"
+                  />
+                  <Typography
+                    sx={{
+                      mt: 1.5,
+                      color: "#cbd5e1",
+                      fontFamily: "IBM Plex Mono, monospace",
+                      fontSize: 13,
+                    }}
+                  >
+                    Comparing selected captures and generating difference map...
+                  </Typography>
+                </Box>
+              ) : null}
+
+              {error ? (
+                <Alert severity="error" sx={{ borderRadius: 3 }}>
+                  {error}
+                </Alert>
+              ) : null}
+
               {result ? (
                 <>
-                  <Typography color="text.secondary">{result.summary}</Typography>
-                  {groupedChanges.slice(0, 8).map((change) => (
-                    <Box className="row" key={`${change.change_type}-${change.label}`}>
-                      <span>{change.change_type} {change.label} ({change.regions})</span>
-                      <span className="mono">{change.area_pct.toFixed(2)}%</span>
-                    </Box>
-                  ))}
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Chip
+                      label={`${result.changes.length} raw changes`}
+                      className="statusChip statusChipPurple"
+                    />
+                    <Chip
+                      label={`${groupedChanges.length} grouped`}
+                      className="statusChip statusChipPink"
+                    />
+                  </Stack>
+
+                  <Box className="infoBox">
+                    <Typography sx={{ color: "#f8fafc", fontWeight: 900 }}>
+                      Summary
+                    </Typography>
+                    <Typography sx={{ mt: 0.8, color: "#94a3b8", lineHeight: 1.7 }}>
+                      {result.summary}
+                    </Typography>
+                  </Box>
+
+                  <Typography variant="h6" sx={{ color: "#f8fafc", fontWeight: 900 }}>
+                    Change Groups
+                  </Typography>
+
+                  <Stack spacing={1.2}>
+                    {groupedChanges.slice(0, 8).map((change, index) => (
+                      <Box
+                        className="detectionRow purpleHover"
+                        key={`${change.change_type}-${change.label}`}
+                        sx={{
+                          alignItems: "center",
+                          animationDelay: `${index * 0.05}s`,
+                        }}
+                      >
+                        <Box>
+                          <Typography sx={{ color: "#f8fafc", fontWeight: 900 }}>
+                            {change.change_type} {change.label}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              mt: 0.3,
+                              color: "#94a3b8",
+                              fontFamily: "IBM Plex Mono, monospace",
+                              fontSize: 12,
+                            }}
+                          >
+                            {change.regions} regions /{" "}
+                            {change.area_px.toLocaleString()} px
+                          </Typography>
+                        </Box>
+
+                        <Typography
+                          className="mono"
+                          sx={{
+                            color: "#c084fc",
+                            fontFamily: "IBM Plex Mono, monospace",
+                            fontWeight: 900,
+                          }}
+                        >
+                          {change.area_pct.toFixed(2)}%
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
                 </>
-              ) : null}
+              ) : (
+                <Box className="infoBox">
+                  <Typography sx={{ color: "#f8fafc", fontWeight: 900 }}>
+                    Ready to compare
+                  </Typography>
+                  <Typography sx={{ mt: 0.8, color: "#94a3b8", fontSize: 14 }}>
+                    Select two uploaded images from the same area, then run
+                    comparison to generate a difference overlay.
+                  </Typography>
+                </Box>
+              )}
             </Stack>
           </Box>
         </Box>
@@ -77,15 +309,90 @@ export function ComparePage({ images, onCompared }: ComparePageProps) {
   );
 }
 
+function PreviewImage({
+  title,
+  image,
+}: {
+  title: string;
+  image?: UploadedImage;
+}) {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: 500,
+        borderRadius: "22px",
+        overflow: "hidden",
+        bgcolor: "#020617",
+        border: "1px solid rgba(148,163,184,0.16)",
+      }}
+    >
+      <Chip
+        label={title}
+        sx={{
+          position: "absolute",
+          top: 14,
+          left: 14,
+          zIndex: 2,
+          bgcolor: title === "Before" ? "rgba(168,85,247,0.9)" : "rgba(236,72,153,0.9)",
+          color: "#fff",
+          fontWeight: 900,
+        }}
+      />
+
+      {image ? (
+        <img
+          src={assetUrl(image.url)}
+          alt={title}
+          style={{
+            width: "100%",
+            height: "100%",
+            minHeight: 500,
+            objectFit: "contain",
+            display: "block",
+          }}
+        />
+      ) : (
+        <Stack
+          alignItems="center"
+          justifyContent="center"
+          sx={{ height: "100%", minHeight: 500, color: "#94a3b8" }}
+        >
+          <Typography>No image selected.</Typography>
+        </Stack>
+      )}
+    </Box>
+  );
+}
+
 function groupChanges(changes: CompareResult["changes"]) {
-  const grouped = new Map<string, { change_type: string; label: string; regions: number; area_pct: number; area_px: number }>();
+  const grouped = new Map<
+    string,
+    {
+      change_type: string;
+      label: string;
+      regions: number;
+      area_pct: number;
+      area_px: number;
+    }
+  >();
+
   for (const change of changes) {
     const key = `${change.change_type}:${change.label}`;
-    const current = grouped.get(key) ?? { change_type: change.change_type, label: change.label, regions: 0, area_pct: 0, area_px: 0 };
+    const current =
+      grouped.get(key) ?? {
+        change_type: change.change_type,
+        label: change.label,
+        regions: 0,
+        area_pct: 0,
+        area_px: 0,
+      };
+
     current.regions += 1;
     current.area_pct += change.area_pct;
     current.area_px += change.area_px;
     grouped.set(key, current);
   }
+
   return [...grouped.values()].sort((a, b) => b.area_px - a.area_px);
 }

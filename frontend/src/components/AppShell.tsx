@@ -25,20 +25,9 @@ export function AppShell({ children, page, onNavigate }: AppShellProps) {
     <Box minHeight="100vh" bgcolor="background.default">
       <Box
         component="nav"
-        sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          px: { xs: 2, md: 4 },
-          py: 1.5,
-          bgcolor: "rgba(11, 18, 32, 0.82)",
-          borderBottom: "1px solid rgba(140, 160, 184, 0.18)",
-          backdropFilter: "blur(14px)"
-        }}
+        className="missionNav"
       >
-        <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ overflowX: "auto" }}>
+        <Stack direction="row" spacing={1} justifyContent="flex-end" className="navScroll">
           {navItems.map((item) => (
             <Button
               key={item.label}

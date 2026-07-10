@@ -1,6 +1,15 @@
 import { useEffect, useRef } from "react";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Chip,
+  Stack,
+  Typography,
+} from "@mui/material";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+import SecurityIcon from "@mui/icons-material/Security";
+import SpeedIcon from "@mui/icons-material/Speed";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import Globe from "react-globe.gl";
 
 type LandingPageProps = {
@@ -8,8 +17,20 @@ type LandingPageProps = {
 };
 
 const arcs = [
-  { startLat: 28.6, startLng: 77.2, endLat: 37.7, endLng: -122.4, color: ["#3FA7A0", "#E8A33D"] },
-  { startLat: 51.5, startLng: -0.1, endLat: 35.6, endLng: 139.6, color: ["#3FA7A0", "#E8A33D"] }
+  {
+    startLat: 28.6,
+    startLng: 77.2,
+    endLat: 37.7,
+    endLng: -122.4,
+    color: ["#3FA7A0", "#E8A33D"],
+  },
+  {
+    startLat: 51.5,
+    startLng: -0.1,
+    endLat: 35.6,
+    endLng: 139.6,
+    color: ["#3FA7A0", "#E8A33D"],
+  },
 ];
 
 const localGlobeTexture =
@@ -20,6 +41,7 @@ export function LandingPage({ onLaunch }: LandingPageProps) {
 
   useEffect(() => {
     const controls = globeRef.current?.controls?.();
+
     if (controls) {
       controls.autoRotate = true;
       controls.autoRotateSpeed = 0.45;
@@ -28,46 +50,315 @@ export function LandingPage({ onLaunch }: LandingPageProps) {
   }, []);
 
   return (
-    <Box className="hero">
-      <Box className="globeStage" aria-hidden="true">
+    <Box
+      className="hero"
+      sx={{
+        position: "relative",
+        minHeight: {
+          xs: "calc(100vh - 72px)",
+          md: "calc(100vh - 80px)",
+        },
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        px: {
+          xs: 2.5,
+          sm: 5,
+          md: 8,
+          lg: 12,
+        },
+        py: {
+          xs: 7,
+          md: 5,
+        },
+        isolation: "isolate",
+        background:
+          "radial-gradient(circle at 72% 46%, rgba(16, 83, 103, 0.38), transparent 30%), linear-gradient(135deg, #030712 0%, #071522 48%, #071b25 100%)",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: -4,
+          opacity: 0.28,
+          backgroundImage:
+            "linear-gradient(rgba(63,167,160,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(63,167,160,0.07) 1px, transparent 1px)",
+          backgroundSize: "54px 54px",
+          maskImage:
+            "linear-gradient(to right, black, transparent 78%)",
+        },
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: -3,
+          pointerEvents: "none",
+          background:
+            "linear-gradient(90deg, rgba(3,7,18,0.98) 0%, rgba(3,7,18,0.88) 35%, rgba(3,7,18,0.25) 66%, rgba(3,7,18,0.1) 100%)",
+        },
+      }}
+    >
+      <Box className="floatingGlow floatingGlowPrimary" />
+
+      <Box className="floatingGlow floatingGlowAccent" />
+
+      <Box
+        className="globeStage heroGlobeShell"
+        aria-hidden="true"
+        sx={{
+          position: "absolute",
+          right: {
+            xs: "-310px",
+            sm: "-240px",
+            md: "-160px",
+            lg: "-40px",
+          },
+          top: "50%",
+          width: {
+            xs: 620,
+            md: 760,
+            lg: 900,
+          },
+          height: {
+            xs: 620,
+            md: 760,
+            lg: 900,
+          },
+          transform: "translateY(-50%)",
+          zIndex: 0,
+          "& > canvas": {
+            position: "relative",
+            zIndex: 2,
+          },
+        }}
+      >
+        <Box className="globeGlow" />
+
         <div className="earthFallback">
           <div className="earthTexture" />
           <div className="orbit orbitOne" />
           <div className="orbit orbitTwo" />
           <div className="satelliteDot" />
         </div>
-        <Globe
-          ref={globeRef}
-          backgroundColor="rgba(0,0,0,0)"
-          globeImageUrl={localGlobeTexture}
-          arcsData={arcs}
-          arcColor="color"
-          arcAltitude={0.18}
-          arcStroke={0.8}
-          arcDashLength={0.48}
-          arcDashGap={2}
-          arcDashAnimateTime={3400}
-          pointsData={[{ lat: 28.6, lng: 77.2, size: 0.45 }, { lat: 37.7, lng: -122.4, size: 0.35 }]}
-          pointAltitude="size"
-          pointColor={() => "#E8A33D"}
-          width={900}
-          height={900}
-        />
+
+        <Box className="globeFloat">
+          <Globe
+            ref={globeRef}
+            backgroundColor="rgba(0,0,0,0)"
+            globeImageUrl={localGlobeTexture}
+            arcsData={arcs}
+            arcColor="color"
+            arcAltitude={0.18}
+            arcStroke={0.8}
+            arcDashLength={0.48}
+            arcDashGap={2}
+            arcDashAnimateTime={3400}
+            pointsData={[
+              {
+                lat: 28.6,
+                lng: 77.2,
+                size: 0.45,
+              },
+              {
+                lat: 37.7,
+                lng: -122.4,
+                size: 0.35,
+              },
+            ]}
+            pointAltitude="size"
+            pointColor={() => "#E8A33D"}
+            width={900}
+            height={900}
+          />
+        </Box>
+
+        <Box className="globeScan" />
       </Box>
-      <Box className="heroOverlay">
-        <Stack spacing={3} maxWidth={720}>
-          <Typography variant="overline" color="primary.main" fontFamily="IBM Plex Mono">
-            LOCAL CV ANALYSIS / MISSION CONTROL
+
+      <Box
+        className="heroOverlay"
+        sx={{
+          position: "relative",
+          zIndex: 3,
+          width: "100%",
+          maxWidth: 1440,
+          mx: "auto",
+        }}
+      >
+        <Stack
+          spacing={3}
+          maxWidth={760}
+          className="heroCopy"
+        >
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1.2}
+          >
+            <Box className="statusDot" />
+
+            <Typography
+              variant="overline"
+              color="primary.main"
+              fontFamily="IBM Plex Mono"
+              sx={{
+                color: "#5eead4",
+                fontWeight: 900,
+                letterSpacing: {
+                  xs: 1.6,
+                  md: 2.7,
+                },
+                fontSize: {
+                  xs: 10,
+                  sm: 12,
+                },
+              }}
+            >
+              LOCAL CV ANALYSIS / MISSION CONTROL
+            </Typography>
+          </Stack>
+
+          <Typography
+            variant="h1"
+            className="heroTitle"
+          >
+            Satellite intelligence, running entirely{" "}
+            <Box component="span">on your machine.</Box>
           </Typography>
-          <Typography variant="h1">Satellite intelligence, running entirely on your machine.</Typography>
-          <Typography variant="body1" color="text.secondary">
-            Upload aerial imagery, generate feature overlays, compare year-over-year changes, and export local reports without paid APIs or cloud inference.
+
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            className="heroText"
+          >
+            Upload aerial imagery, generate feature overlays, compare
+            year-over-year changes, and export local reports without paid APIs
+            or cloud inference.
           </Typography>
-          <Button variant="contained" color="primary" startIcon={<RocketLaunchIcon />} className="launchButton" onClick={onLaunch}>
-            Launch Analysis
-          </Button>
+
+          <Stack
+            direction="row"
+            spacing={1.2}
+            flexWrap="wrap"
+            useFlexGap
+            className="heroDelayOne"
+          >
+            <FeatureChip
+              icon={<SecurityIcon />}
+              label="Private and local"
+            />
+
+            <FeatureChip
+              icon={<SpeedIcon />}
+              label="Fast visual analysis"
+            />
+
+            <FeatureChip
+              icon={<AutoAwesomeIcon />}
+              label="AI-powered insights"
+            />
+          </Stack>
+
+          <Stack
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
+            alignItems={{
+              xs: "stretch",
+              sm: "center",
+            }}
+            spacing={2}
+            className="heroDelayTwo"
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<RocketLaunchIcon />}
+              className="launchButton"
+              onClick={onLaunch}
+            >
+              Launch Analysis
+            </Button>
+
+            <Typography
+              className="heroFinePrint"
+            >
+              No cloud inference
+              <br />
+              No imagery leaves your device
+            </Typography>
+          </Stack>
+
+          <Stack
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
+            spacing={{
+              xs: 1.5,
+              sm: 4,
+            }}
+            className="heroDelayThree"
+          >
+            <StatItem
+              value="100%"
+              label="local processing"
+            />
+
+            <StatItem
+              value="0"
+              label="paid inference APIs"
+            />
+
+            <StatItem
+              value="CV + AI"
+              label="analysis pipeline"
+            />
+          </Stack>
         </Stack>
       </Box>
+    </Box>
+  );
+}
+
+function FeatureChip({
+  icon,
+  label,
+}: {
+  icon: React.ReactElement;
+  label: string;
+}) {
+  return (
+    <Chip
+      icon={icon}
+      label={label}
+      className="featureChip"
+    />
+  );
+}
+
+function StatItem({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
+  return (
+    <Box className="statItem">
+      <Typography
+        className="statValue"
+      >
+        {value}
+      </Typography>
+
+      <Box className="statDivider" />
+
+      <Typography
+        className="statLabel"
+      >
+        {label}
+      </Typography>
     </Box>
   );
 }

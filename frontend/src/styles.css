@@ -1,6 +1,21 @@
 :root {
   color: #e7edf5;
   background: #0b1220;
+  --bg: #0b1220;
+  --panel: #121b2e;
+  --panel-2: rgba(15, 23, 42, 0.94);
+  --primary: #3fa7a0;
+  --primary-bright: #2dd4bf;
+  --cyan: #38bdf8;
+  --amber: #e8a33d;
+  --purple: #a855f7;
+  --pink: #ec4899;
+  --text: #e7edf5;
+  --text-strong: #f8fafc;
+  --muted: #8ca0b8;
+  --muted-2: #94a3b8;
+  --border: rgba(148, 163, 184, 0.18);
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -20,6 +35,360 @@ body {
 
 .mono {
   font-family: "IBM Plex Mono", monospace;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes softPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(45, 212, 191, 0.04);
+  }
+  50% {
+    box-shadow: 0 0 42px rgba(45, 212, 191, 0.12);
+  }
+}
+
+@keyframes cardPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(45, 212, 191, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 45px rgba(45, 212, 191, 0.18);
+  }
+}
+
+@keyframes purplePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(168, 85, 247, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 45px rgba(168, 85, 247, 0.2);
+  }
+}
+
+@keyframes scanLine {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% center;
+  }
+  to {
+    background-position: -200% center;
+  }
+}
+
+@keyframes floatGlobe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.01);
+  }
+}
+
+@keyframes orbitPulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes floatIcon {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.fadeUp {
+  animation: fadeUp 0.45s ease both;
+}
+
+.pageHeader {
+  animation: fadeUp 0.45s ease both;
+}
+
+.eyebrow {
+  color: var(--primary-bright);
+  font-family: "IBM Plex Mono", monospace;
+  letter-spacing: 3px;
+  font-weight: 900;
+}
+
+.eyebrowPurple {
+  color: #c084fc;
+}
+
+.pageTitle {
+  margin-top: 0.5rem;
+  font-weight: 900;
+  line-height: 1.05;
+  color: #e5f7ff;
+}
+
+.pageTitlePurple {
+  color: #f5f3ff;
+}
+
+.pageSubtitle {
+  margin-top: 0.75rem;
+  max-width: 760px;
+  color: var(--muted-2);
+  line-height: 1.7;
+}
+
+.missionNav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 10;
+  padding: 0.75rem 2rem;
+  background: rgba(11, 18, 32, 0.82);
+  border-bottom: 1px solid rgba(140, 160, 184, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.navScroll {
+  overflow-x: auto;
+}
+
+.glassPanel,
+.panel {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.panelPadded {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.toolGridWide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.toolGridResults {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.missionButton.MuiButton-root {
+  border-radius: 999px;
+  padding: 0.72rem 1.5rem;
+  font-weight: 900;
+  text-transform: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.missionButton.MuiButton-root:hover {
+  transform: translateY(-2px);
+}
+
+.missionButtonPrimary.MuiButton-root {
+  color: #031b20;
+  background: linear-gradient(135deg, #2dd4bf, #38bdf8);
+  box-shadow: 0 14px 34px rgba(45, 212, 191, 0.24);
+}
+
+.missionButtonPrimary.MuiButton-root:hover {
+  background: linear-gradient(135deg, #5eead4, #7dd3fc);
+}
+
+.missionButtonPurple.MuiButton-root {
+  color: #fff;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 14px 34px rgba(168, 85, 247, 0.26);
+}
+
+.missionButtonPurple.MuiButton-root:hover {
+  background: linear-gradient(135deg, #c084fc, #f472b6);
+}
+
+.missionButtonOutline.MuiButton-root {
+  color: var(--primary-bright);
+  border-color: rgba(45, 212, 191, 0.45);
+}
+
+.missionButtonOutline.MuiButton-root:hover {
+  border-color: var(--primary-bright);
+  background: rgba(45, 212, 191, 0.08);
+}
+
+.missionButtonOutlinePurple.MuiButton-root {
+  color: #c084fc;
+  border-color: rgba(192, 132, 252, 0.45);
+}
+
+.missionButtonOutlinePurple.MuiButton-root:hover {
+  border-color: #c084fc;
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.darkField .MuiInputLabel-root {
+  color: var(--muted-2);
+}
+
+.darkField .MuiInputLabel-root.Mui-focused {
+  color: var(--primary-bright);
+}
+
+.darkFieldPurple .MuiInputLabel-root.Mui-focused {
+  color: #c084fc;
+}
+
+.darkField .MuiOutlinedInput-root {
+  color: var(--text-strong);
+  border-radius: 18px;
+  background: rgba(30, 41, 59, 0.72);
+}
+
+.darkField .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.darkField .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(45, 212, 191, 0.45);
+}
+
+.darkFieldPurple .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(192, 132, 252, 0.45);
+}
+
+.darkField .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary-bright);
+}
+
+.darkFieldPurple .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #c084fc;
+}
+
+.darkField .MuiSelect-icon {
+  color: var(--muted-2);
+}
+
+.metricChip.MuiChip-root {
+  height: 38px;
+  padding-inline: 0.25rem;
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  font-weight: 800;
+}
+
+.metricChip .MuiChip-icon {
+  color: var(--primary-bright);
+}
+
+.featureChip.MuiChip-root {
+  height: 40px;
+  color: #cbd5e1;
+  background: rgba(15, 35, 49, 0.72);
+  border: 1px solid rgba(94, 234, 212, 0.15);
+  backdrop-filter: blur(14px);
+  font-weight: 800;
+  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.featureChip.MuiChip-root:hover {
+  transform: translateY(-3px);
+  border-color: rgba(94, 234, 212, 0.42);
+  background: rgba(18, 52, 65, 0.9);
+}
+
+.featureChip .MuiChip-icon {
+  color: #5eead4;
+  font-size: 19px;
+}
+
+.countChip.MuiChip-root {
+  min-width: 34px;
+  color: var(--primary-bright);
+  background: rgba(45, 212, 191, 0.12);
+  font-weight: 900;
+}
+
+.countChipBlue.MuiChip-root {
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.artifactButton.MuiButton-root {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 16px;
+  padding-inline: 1rem;
+  text-transform: none;
+  font-weight: 900;
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.artifactButton.MuiButton-root:hover {
+  color: var(--primary-bright);
+  border-color: var(--primary-bright);
+  background: rgba(45, 212, 191, 0.08);
+  transform: translateY(-2px);
 }
 
 .hero {
@@ -151,14 +520,6 @@ body {
   padding: clamp(6rem, 9vw, 8rem) clamp(1rem, 5vw, 4rem) 4rem;
 }
 
-.panel {
-  background: #121b2e;
-  border: 1px solid rgba(140, 160, 184, 0.18);
-  border-radius: 8px;
-  padding: clamp(1rem, 3vw, 1.5rem);
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.22);
-}
-
 .toolGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
@@ -166,18 +527,317 @@ body {
   align-items: start;
 }
 
+.imagePanel,
+.controlPanel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: var(--shadow);
+}
+
+.softPulsePanel {
+  animation: softPulse 3s ease-in-out infinite;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(8, 20, 32, 0.96));
+}
+
+.controlPanel {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.busyPanel {
+  animation: cardPulse 1.6s ease infinite;
+}
+
+.scanOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(180deg, transparent, rgba(45, 212, 191, 0.05), transparent);
+}
+
+.scanOverlay::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 32%;
+  background: linear-gradient(180deg, transparent, rgba(45, 212, 191, 0.18), transparent);
+  animation: scanLine 2s linear infinite;
+}
+
+.floatingGlow {
+  position: absolute;
+  border-radius: 50%;
+  z-index: -2;
+  filter: blur(90px);
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
+.floatingGlowPrimary {
+  width: min(32vw, 460px);
+  height: min(32vw, 460px);
+  right: 12%;
+  top: 16%;
+  background: rgba(45, 212, 191, 0.12);
+}
+
+.floatingGlowAccent {
+  width: min(25vw, 360px);
+  height: min(25vw, 360px);
+  right: 4%;
+  bottom: 8%;
+  background: rgba(232, 163, 61, 0.08);
+  animation-direction: reverse;
+}
+
+.heroGlobeShell {
+  animation: fadeIn 1.2s ease both;
+}
+
+.heroGlobeShell::before,
+.heroGlobeShell::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+.heroGlobeShell::before {
+  inset: 10%;
+  border: 1px solid rgba(63, 167, 160, 0.16);
+  animation: orbitPulse 5s ease-in-out infinite;
+}
+
+.heroGlobeShell::after {
+  inset: 3%;
+  border: 1px dashed rgba(232, 163, 61, 0.14);
+  animation: orbitPulse 7s ease-in-out infinite reverse;
+}
+
+.globeGlow {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(63, 167, 160, 0.16), transparent 66%);
+  filter: blur(18px);
+  animation: pulseGlow 5.5s ease-in-out infinite;
+}
+
+.globeFloat {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: floatGlobe 7s ease-in-out infinite;
+}
+
+.globeScan {
+  position: absolute;
+  inset: 10%;
+  z-index: 4;
+  overflow: hidden;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.globeScan::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24%;
+  background: linear-gradient(180deg, transparent, rgba(63, 167, 160, 0.09), transparent);
+  animation: scanLine 6s linear infinite;
+}
+
+.heroCopy {
+  animation: fadeUp 0.75s ease both;
+}
+
+.statusDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #2dd4bf;
+  box-shadow: 0 0 0 5px rgba(45, 212, 191, 0.12), 0 0 20px rgba(45, 212, 191, 0.65);
+  animation: pulseGlow 2.4s ease-in-out infinite;
+}
+
+.heroTitle {
+  max-width: 760px;
+  font-size: clamp(2.7rem, 8vw, 5.6rem);
+  line-height: 0.98;
+  font-weight: 950;
+  color: var(--text-strong);
+  text-wrap: balance;
+  text-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+}
+
+.heroTitle span {
+  color: transparent;
+  background: linear-gradient(90deg, #5eead4, #38bdf8, #e8a33d, #5eead4);
+  background-size: 220% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shimmer 8s linear infinite;
+}
+
+.heroText {
+  max-width: 680px;
+  color: #a9bac8;
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.8;
+}
+
+.heroDelayOne {
+  animation: fadeUp 0.7s ease 0.15s both;
+}
+
+.heroDelayTwo {
+  animation: fadeUp 0.7s ease 0.25s both;
+}
+
+.heroDelayThree {
+  animation: fadeUp 0.7s ease 0.35s both;
+}
+
+.launchButton.MuiButton-root {
+  position: relative;
+  overflow: hidden;
+  width: fit-content;
+  min-height: 58px;
+  padding-inline: 2rem;
+  border-radius: 18px;
+  color: #03201f;
+  font-size: 1rem;
+  font-weight: 950;
+  text-transform: none;
+  background: linear-gradient(135deg, #5eead4 0%, #38bdf8 100%);
+  box-shadow: 0 18px 45px rgba(45, 212, 191, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.launchButton.MuiButton-root::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -45%;
+  width: 35%;
+  transform: skewX(-24deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transition: left 0.55s ease;
+}
+
+.launchButton.MuiButton-root:hover {
+  transform: translateY(-4px) scale(1.015);
+  background: linear-gradient(135deg, #99f6e4 0%, #7dd3fc 100%);
+  box-shadow: 0 24px 60px rgba(45, 212, 191, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.launchButton.MuiButton-root:hover::before {
+  left: 125%;
+}
+
+.heroFinePrint {
+  color: #64748b;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 250px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statValue {
+  color: var(--text-strong);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.statDivider {
+  width: 1px;
+  height: 20px;
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.statLabel {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .uploadZone {
+  position: relative;
+  overflow: hidden;
   min-height: 300px;
-  border: 1px dashed rgba(63, 167, 160, 0.58);
-  border-radius: 8px;
-  background: rgba(18, 27, 46, 0.72);
+  border: 1px dashed rgba(45, 212, 191, 0.7);
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(13, 31, 45, 0.96), rgba(18, 64, 80, 0.82));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  padding: 2rem;
+  padding: clamp(2rem, 5vw, 3rem);
   text-align: center;
+  box-shadow: var(--shadow);
+  transition: all 0.28s ease;
+}
+
+.uploadZone:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-bright);
+  box-shadow: 0 28px 90px rgba(45, 212, 191, 0.16);
+}
+
+.uploadZone::before {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  right: -70px;
+  top: -90px;
+  background: rgba(45, 212, 191, 0.14);
+  filter: blur(8px);
+}
+
+.uploadZone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.8s ease;
+}
+
+.uploadZone:hover::after {
+  transform: translateX(100%);
+}
+
+.uploadIcon {
+  z-index: 1;
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.5rem;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  animation: floatIcon 2.5s ease-in-out infinite;
+}
+
+.uploadButton.MuiButton-root {
+  z-index: 1;
 }
 
 .row {
@@ -240,6 +900,19 @@ body {
   font-size: 0.875rem;
 }
 
+.locatorLegendFloating {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 16px;
+  color: #e2e8f0;
+  background: rgba(2, 6, 23, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+}
+
 .locatorLegend span {
   display: inline-flex;
   align-items: center;
@@ -275,8 +948,109 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid rgba(140, 160, 184, 0.14);
+  padding: 0.95rem;
+  border-radius: 18px;
+  background: rgba(30, 41, 59, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  transition: all 0.25s ease;
+}
+
+.detectionRow:hover {
+  transform: translateX(4px);
+  border-color: rgba(45, 212, 191, 0.48);
+  background: rgba(30, 64, 75, 0.82);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem;
+  border-radius: 16px;
+  background: rgba(30, 41, 59, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.infoBox,
+.progressBox {
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.progressBox {
+  background: rgba(45, 212, 191, 0.08);
+  border-color: rgba(45, 212, 191, 0.18);
+}
+
+.progressBoxPurple {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.18);
+}
+
+.missionProgress.MuiLinearProgress-root {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.missionProgress .MuiLinearProgress-bar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2dd4bf, #38bdf8);
+}
+
+.missionProgressPurple .MuiLinearProgress-bar {
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+}
+
+.statusChip.MuiChip-root {
+  color: #2dd4bf;
+  background: rgba(45, 212, 191, 0.14);
+  font-weight: 900;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.statusChipBlue.MuiChip-root {
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.13);
+}
+
+.statusChipAmber.MuiChip-root {
+  color: #fbbf24;
+  background: rgba(232, 163, 61, 0.14);
+}
+
+.statusChipPurple.MuiChip-root {
+  color: #d8b4fe;
+  background: rgba(168, 85, 247, 0.15);
+}
+
+.statusChipPink.MuiChip-root {
+  color: #f9a8d4;
+  background: rgba(236, 72, 153, 0.14);
+}
+
+.purpleHover:hover {
+  border-color: rgba(168, 85, 247, 0.52);
+  background: rgba(49, 46, 129, 0.55);
+}
+
+.emptyState {
+  min-height: 520px;
+  color: var(--muted-2);
+}
+
+.emptyBox {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(30, 41, 59, 0.48);
+  border: 1px dashed rgba(148, 163, 184, 0.18);
+}
+
+.inlineIconLarge.MuiSvgIcon-root {
+  font-size: 54px;
+  color: var(--primary-bright);
 }
 
 .splitImages {
@@ -291,6 +1065,8 @@ body {
 
 @media (max-width: 900px) {
   .toolGrid,
+  .toolGridWide,
+  .toolGridResults,
   .splitImages {
     grid-template-columns: 1fr;
   }
@@ -315,5 +1091,20 @@ body {
 
   .heroOverlay {
     padding-top: 8rem;
+  }
+
+  .floatingGlowPrimary {
+    width: 280px;
+    height: 280px;
+    right: -120px;
+  }
+
+  .floatingGlowAccent {
+    width: 220px;
+    height: 220px;
+  }
+
+  .heroTitle {
+    line-height: 1.05;
   }
 }
