@@ -1,21 +1,19 @@
 import json
-import sqlite3
-from pathlib import Path
 from typing import Any
+
+import psycopg
+from psycopg.rows import dict_row
 
 from app.core.config import settings
 
 
 class Database:
-    def __init__(self, path: Path) -> None:
-        self.path = path
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.init()
+    def __init__(self, url: str) -> None:
+        self.url = url
+        self._initialized = False
 
-    def connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def connect(self) -> psycopg.Connection:
+        return psycopg.connect(self.url, row_factory=dict_row)
 
     def init(self) -> None:
         with self.connect() as conn:
@@ -39,6 +37,8 @@ class Database:
             self._ensure_column(conn, "images", "capture_date", "TEXT")
             self._ensure_column(conn, "images", "source_provider", "TEXT")
             self._ensure_column(conn, "images", "source_note", "TEXT")
+            self._ensure_column(conn, "images", "bucket_name", "TEXT")
+            self._ensure_column(conn, "images", "object_key", "TEXT")
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS analyses (
@@ -66,25 +66,49 @@ class Database:
                 )
                 """
             )
+            conn.commit()
+        self._initialized = True
 
-    def _ensure_column(self, conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
-        columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    def _ensure_ready(self) -> None:
+        if not self._initialized:
+            self.init()
+
+    def _ensure_column(self, conn: psycopg.Connection, table: str, column: str, definition: str) -> None:
+        columns = {
+            row["column_name"]
+            for row in conn.execute(
+                """
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = %s
+                """,
+                (table,),
+            ).fetchall()
+        }
         if column not in columns:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     def execute(self, query: str, params: tuple[Any, ...] = ()) -> None:
+        self._ensure_ready()
         with self.connect() as conn:
-            conn.execute(query, params)
+            conn.execute(self._postgres_query(query), params)
+            conn.commit()
 
     def fetch_one(self, query: str, params: tuple[Any, ...] = ()) -> dict[str, Any] | None:
+        self._ensure_ready()
         with self.connect() as conn:
-            row = conn.execute(query, params).fetchone()
-        return dict(row) if row else None
+            row = conn.execute(self._postgres_query(query), params).fetchone()
+        return row
 
     def fetch_all(self, query: str, params: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
+        self._ensure_ready()
         with self.connect() as conn:
-            rows = conn.execute(query, params).fetchall()
-        return [dict(row) for row in rows]
+            rows = conn.execute(self._postgres_query(query), params).fetchall()
+        return list(rows)
+
+    @staticmethod
+    def _postgres_query(query: str) -> str:
+        return query.replace("?", "%s")
 
     @staticmethod
     def dumps(value: dict[str, Any]) -> str:
@@ -95,4 +119,4 @@ class Database:
         return json.loads(value) if value else None
 
 
-db = Database(settings.database_path)
+db = Database(settings.database_url)

@@ -11,8 +11,6 @@ opencv-python-headless==4.10.0.84
 shapely==2.0.6
 httpx==0.28.1
 reportlab==4.2.5
-torch==2.2.2
-torchvision==0.17.2
 transformers==4.47.1
 accelerate==1.2.1
 safetensors==0.4.5

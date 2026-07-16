@@ -12,6 +12,7 @@ from shapely.geometry import box
 
 from app.core.config import settings
 from app.core.database import db
+from app.core.redis_client import redis_client
 from app.schemas.analysis import Artifact, CompareResult
 from app.services.analysis import analysis_service
 from app.services.storage import artifact_url, now_iso, storage_service
@@ -32,6 +33,7 @@ class ChangeDetectionService:
         after_image = storage_service.get_image(after_id)
         compare_id = uuid4().hex
         timestamp = now_iso()
+        redis_client.set_status(f"comparison:{compare_id}:status", "processing")
         db.execute(
             """
             INSERT INTO comparisons (id, before_image_id, after_image_id, status, created_at, updated_at)
@@ -104,9 +106,11 @@ class ChangeDetectionService:
                 "UPDATE comparisons SET status = 'completed', result_json = ?, updated_at = ? WHERE id = ?",
                 (db.dumps(report), report["updated_at"], compare_id),
             )
+            redis_client.set_status(f"comparison:{compare_id}:status", "completed")
             return CompareResult(**report)
         except Exception as exc:
             updated_at = now_iso()
+            redis_client.set_status(f"comparison:{compare_id}:status", "failed")
             db.execute("UPDATE comparisons SET status = 'failed', error = ?, updated_at = ? WHERE id = ?", (str(exc), updated_at, compare_id))
             raise HTTPException(status_code=500, detail=f"Comparison failed: {exc}") from exc
 

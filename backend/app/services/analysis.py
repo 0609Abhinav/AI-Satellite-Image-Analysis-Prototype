@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from app.core.config import settings
 from app.core.database import db
+from app.core.redis_client import redis_client
 from app.schemas.analysis import AnalysisResult, Artifact
 from app.services.storage import artifact_url, now_iso, storage_service
 from app.services.summary import summary_service
@@ -24,6 +25,7 @@ class AnalysisService:
         timestamp = now_iso()
         started = time.perf_counter()
         logger.info("analysis %s accepted for image %s (%s)", analysis_id, image_id, image.original_name)
+        redis_client.set_status(f"analysis:{analysis_id}:status", "processing")
         db.execute(
             """
             INSERT INTO analyses (id, image_id, status, created_at, updated_at)
@@ -71,10 +73,12 @@ class AnalysisService:
                 "UPDATE analyses SET status = 'completed', result_json = ?, updated_at = ? WHERE id = ?",
                 (db.dumps(report), report["updated_at"], analysis_id),
             )
+            redis_client.set_status(f"analysis:{analysis_id}:status", "completed")
             logger.info("analysis %s completed in %.1fs", analysis_id, time.perf_counter() - started)
             return AnalysisResult(**report)
         except Exception as exc:
             updated_at = now_iso()
+            redis_client.set_status(f"analysis:{analysis_id}:status", "failed")
             db.execute(
                 "UPDATE analyses SET status = 'failed', error = ?, updated_at = ? WHERE id = ?",
                 (str(exc), updated_at, analysis_id),

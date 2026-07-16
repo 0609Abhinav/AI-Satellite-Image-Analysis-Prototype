@@ -10,6 +10,7 @@ from PIL import Image
 
 from app.core.config import settings
 from app.core.database import db
+from app.core.object_storage import object_storage
 from app.schemas.analysis import UploadedImage
 from app.utils.files import is_allowed_image
 
@@ -19,8 +20,31 @@ def now_iso() -> str:
 
 
 def artifact_url(path: Path) -> str:
-    rel = path.resolve().relative_to(settings.project_root)
-    return "/" + str(rel).replace("\\", "/")
+    path = path.resolve()
+    try:
+        relative = path.relative_to(settings.results_path)
+    except ValueError:
+        rel = path.relative_to(settings.project_root)
+        return "/" + str(rel).replace("\\", "/")
+
+    object_key = str(relative).replace("\\", "/")
+    object_storage.upload_file(settings.minio_results_bucket, object_key, path, _content_type_for(path))
+    return object_storage.presigned_url(settings.minio_results_bucket, object_key)
+
+
+def _content_type_for(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix == ".png":
+        return "image/png"
+    if suffix == ".jpg" or suffix == ".jpeg":
+        return "image/jpeg"
+    if suffix == ".json":
+        return "application/json"
+    if suffix == ".pdf":
+        return "application/pdf"
+    if suffix == ".npz":
+        return "application/octet-stream"
+    return "application/octet-stream"
 
 
 class StorageService:
@@ -36,7 +60,9 @@ class StorageService:
         image_id = uuid4().hex
         suffix = Path(file.filename).suffix.lower()
         filename = f"{image_id}{suffix}"
-        path = settings.uploads_path / filename
+        object_key = filename
+        path = settings.object_cache_path / "uploads" / filename
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
 
         try:
@@ -53,12 +79,29 @@ class StorageService:
             raise HTTPException(status_code=400, detail="Image dimensions must be at least 64x64 pixels.")
 
         created_at = now_iso()
+        object_storage.upload_bytes(
+            settings.minio_uploads_bucket,
+            object_key,
+            content,
+            file.content_type or "application/octet-stream",
+        )
         db.execute(
             """
-            INSERT INTO images (id, original_name, filename, content_type, width, height, size_bytes, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO images (id, original_name, filename, content_type, width, height, size_bytes, bucket_name, object_key, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (image_id, file.filename, filename, file.content_type or "application/octet-stream", width, height, len(content), created_at),
+            (
+                image_id,
+                file.filename,
+                filename,
+                file.content_type or "application/octet-stream",
+                width,
+                height,
+                len(content),
+                settings.minio_uploads_bucket,
+                object_key,
+                created_at,
+            ),
         )
         return self.get_image(image_id)
 
@@ -125,7 +168,7 @@ class StorageService:
             width=row["width"],
             height=row["height"],
             size_bytes=row["size_bytes"],
-            url=artifact_url(settings.uploads_path / row["filename"]),
+            url=object_storage.presigned_url(row.get("bucket_name") or settings.minio_uploads_bucket, row.get("object_key") or row["filename"]),
             capture_date=row.get("capture_date"),
             source_provider=row.get("source_provider"),
             source_note=row.get("source_note"),
@@ -134,7 +177,13 @@ class StorageService:
 
     def image_path(self, image_id: str) -> Path:
         image = self.get_image(image_id)
-        return settings.uploads_path / image.filename
+        row = db.fetch_one("SELECT bucket_name, object_key FROM images WHERE id = ?", (image_id,))
+        bucket_name = row.get("bucket_name") if row else settings.minio_uploads_bucket
+        object_key = row.get("object_key") if row else image.filename
+        path = settings.object_cache_path / "uploads" / image.filename
+        if not path.exists():
+            object_storage.download_file(bucket_name or settings.minio_uploads_bucket, object_key or image.filename, path)
+        return path
 
     def _save_image_bytes(
         self,
@@ -152,7 +201,9 @@ class StorageService:
 
         image_id = uuid4().hex
         filename = f"{image_id}.png"
-        path = settings.uploads_path / filename
+        object_key = filename
+        path = settings.object_cache_path / "uploads" / filename
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
 
         try:
@@ -169,10 +220,11 @@ class StorageService:
             raise HTTPException(status_code=400, detail="Fetched image dimensions must be at least 64x64 pixels.")
 
         created_at = now_iso()
+        object_storage.upload_file(settings.minio_uploads_bucket, object_key, path, "image/png")
         db.execute(
             """
-            INSERT INTO images (id, original_name, filename, content_type, width, height, size_bytes, capture_date, source_provider, source_note, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO images (id, original_name, filename, content_type, width, height, size_bytes, capture_date, source_provider, source_note, bucket_name, object_key, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 image_id,
@@ -185,6 +237,8 @@ class StorageService:
                 capture_date,
                 source_provider,
                 source_note,
+                settings.minio_uploads_bucket,
+                object_key,
                 created_at,
             ),
         )

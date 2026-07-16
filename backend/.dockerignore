@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.git/
+.pytest_cache/
+uploads/
+results/
+storage/
+models/cache/
+satellite_poc.db

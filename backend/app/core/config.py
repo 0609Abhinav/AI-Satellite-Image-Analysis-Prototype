@@ -1,4 +1,5 @@
 from functools import cached_property
+import os
 from pathlib import Path
 
 from pydantic import Field
@@ -12,11 +13,19 @@ class Settings(BaseSettings):
     backend_cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     uploads_dir: str = "uploads"
     results_dir: str = "results"
-    database_url: str = "satellite_poc.db"
+    database_url: str = "postgresql://satellite:satellite@localhost:5432/satellite"
+    redis_url: str = "redis://localhost:6379/0"
+    minio_endpoint: str = "localhost:9000"
+    minio_access_key: str = "minioadmin"
+    minio_secret_key: str = "minioadmin"
+    minio_secure: bool = False
+    minio_uploads_bucket: str = "satellite-uploads"
+    minio_results_bucket: str = "satellite-results"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "llama3.2"
     model_backend: str = "grounded_sam"
     model_cache_dir: str = "models/cache"
+    object_cache_dir: str = "storage/cache"
     grounding_dino_model_id: str = "IDEA-Research/grounding-dino-tiny"
     sam_model_id: str = "facebook/sam-vit-base"
     model_box_threshold: float = Field(default=0.18, ge=0.01, le=0.99)
@@ -34,6 +43,8 @@ class Settings(BaseSettings):
 
     @cached_property
     def project_root(self) -> Path:
+        if root := os.getenv("PROJECT_ROOT"):
+            return Path(root).resolve()
         return Path(__file__).resolve().parents[3]
 
     @cached_property
@@ -52,6 +63,10 @@ class Settings(BaseSettings):
     def model_cache_path(self) -> Path:
         return self._resolve_path(self.model_cache_dir)
 
+    @cached_property
+    def object_cache_path(self) -> Path:
+        return self._resolve_path(self.object_cache_dir)
+
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.backend_cors_origins.split(",") if origin.strip()]
@@ -60,6 +75,7 @@ class Settings(BaseSettings):
         self.uploads_path.mkdir(parents=True, exist_ok=True)
         self.results_path.mkdir(parents=True, exist_ok=True)
         self.model_cache_path.mkdir(parents=True, exist_ok=True)
+        self.object_cache_path.mkdir(parents=True, exist_ok=True)
 
     def _resolve_path(self, value: str) -> Path:
         path = Path(value)

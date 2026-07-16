@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: satellite
+      POSTGRES_USER: satellite
+      POSTGRES_PASSWORD: satellite
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satellite -d satellite"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_NAME: satellite-analysis-poc
+      APP_VERSION: 0.1.0
+      ENVIRONMENT: docker
+      PROJECT_ROOT: /app
+      BACKEND_CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      DATABASE_URL: postgresql://satellite:satellite@postgres:5432/satellite
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: host.docker.internal:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_SECURE: "false"
+      MINIO_UPLOADS_BUCKET: satellite-uploads
+      MINIO_RESULTS_BUCKET: satellite-results
+      UPLOADS_DIR: uploads
+      RESULTS_DIR: results
+      OBJECT_CACHE_DIR: storage/cache
+      MODEL_CACHE_DIR: models/cache
+      MODEL_BACKEND: grounded_sam
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_object_cache:/app/storage/cache
+      - backend_results_cache:/app/results
+      - model_cache:/app/models/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  backend_object_cache:
+  backend_results_cache:
+  model_cache:
