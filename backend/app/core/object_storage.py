@@ -37,6 +37,9 @@ class ObjectStorage:
             raise
         return path
 
+    def get_object(self, bucket: str, object_key: str):
+        return self.client.get_object(bucket, object_key)
+
     def presigned_url(self, bucket: str, object_key: str) -> str:
         return self.client.presigned_get_object(bucket, object_key, expires=timedelta(hours=2))
 

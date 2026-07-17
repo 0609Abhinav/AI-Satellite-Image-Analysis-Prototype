@@ -1,11 +1,27 @@
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
+from minio.error import S3Error
 
+from app.core.object_storage import object_storage
 from app.core.config import settings
 from app.schemas.analysis import AnalyzeResponse, CompareRequest, CompareResponse, FetchSatelliteRequest, UploadResponse
 from app.schemas.health import HealthResponse
 from app.services.storage import storage_service
 
 router = APIRouter()
+
+
+def content_type_for_object(object_key: str) -> str:
+    lowered = object_key.lower()
+    if lowered.endswith(".png"):
+        return "image/png"
+    if lowered.endswith(".jpg") or lowered.endswith(".jpeg"):
+        return "image/jpeg"
+    if lowered.endswith(".json"):
+        return "application/json"
+    if lowered.endswith(".pdf"):
+        return "application/pdf"
+    return "application/octet-stream"
 
 
 @router.get("/health", response_model=HealthResponse, tags=["system"])
@@ -18,6 +34,20 @@ async def health() -> HealthResponse:
         uploads_dir=str(settings.uploads_path),
         results_dir=str(settings.results_path),
     )
+
+
+@router.get("/objects/{bucket}/{object_key:path}", tags=["storage"])
+async def get_object(bucket: str, object_key: str) -> StreamingResponse:
+    """Stream a stored MinIO object through the backend so browsers use one reachable app URL."""
+    allowed_buckets = {settings.minio_uploads_bucket, settings.minio_results_bucket}
+    if bucket not in allowed_buckets:
+        raise HTTPException(status_code=404, detail="Object not found.")
+    try:
+        response = object_storage.get_object(bucket, object_key)
+    except S3Error as exc:
+        raise HTTPException(status_code=404, detail="Object not found.") from exc
+
+    return StreamingResponse(response.stream(32 * 1024), media_type=content_type_for_object(object_key))
 
 
 @router.post("/upload", response_model=UploadResponse, tags=["images"])

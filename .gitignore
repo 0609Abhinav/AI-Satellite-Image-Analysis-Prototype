@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 satellite_poc.db
 models/cache/
+storage/
 
 node_modules/
 dist/

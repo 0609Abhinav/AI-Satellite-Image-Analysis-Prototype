@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from io import BytesIO
 import math
 from pathlib import Path
+from urllib.parse import quote
 from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile
@@ -29,7 +30,11 @@ def artifact_url(path: Path) -> str:
 
     object_key = str(relative).replace("\\", "/")
     object_storage.upload_file(settings.minio_results_bucket, object_key, path, _content_type_for(path))
-    return object_storage.presigned_url(settings.minio_results_bucket, object_key)
+    return object_url(settings.minio_results_bucket, object_key)
+
+
+def object_url(bucket: str, object_key: str) -> str:
+    return f"/objects/{quote(bucket, safe='')}/{quote(object_key, safe='/')}"
 
 
 def _content_type_for(path: Path) -> str:
@@ -168,7 +173,7 @@ class StorageService:
             width=row["width"],
             height=row["height"],
             size_bytes=row["size_bytes"],
-            url=object_storage.presigned_url(row.get("bucket_name") or settings.minio_uploads_bucket, row.get("object_key") or row["filename"]),
+            url=object_url(row.get("bucket_name") or settings.minio_uploads_bucket, row.get("object_key") or row["filename"]),
             capture_date=row.get("capture_date"),
             source_provider=row.get("source_provider"),
             source_note=row.get("source_note"),
